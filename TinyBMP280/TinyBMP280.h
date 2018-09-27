@@ -103,6 +103,8 @@ public:
     float readTemperature(void);
     float readPressure(void);
     float readAltitude(float seaLevelhPa = 1013.25);
+    uint32_t readIntTemperature(void);
+    uint32_t readIntPressure(void);
 
 private:
     void readCoefficients(void);

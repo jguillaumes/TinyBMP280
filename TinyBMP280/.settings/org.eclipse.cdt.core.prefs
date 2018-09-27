@@ -457,7 +457,7 @@ environment/project/io.sloeber.core.toolChain.release.1802959035/JANTJE.COM_PORT
 environment/project/io.sloeber.core.toolChain.release.1802959035/JANTJE.COM_PORT/value=/dev/cu.usbserial-A50285BI
 environment/project/io.sloeber.core.toolChain.release.1802959035/JANTJE.ECLIPSE_LOCATION/delimiter=\:
 environment/project/io.sloeber.core.toolChain.release.1802959035/JANTJE.ECLIPSE_LOCATION/operation=replace
-environment/project/io.sloeber.core.toolChain.release.1802959035/JANTJE.ECLIPSE_LOCATION/value=${eclipse_home}///////////////////////////////
+environment/project/io.sloeber.core.toolChain.release.1802959035/JANTJE.ECLIPSE_LOCATION/value=${eclipse_home}////////////////////////////////////
 environment/project/io.sloeber.core.toolChain.release.1802959035/JANTJE.EXTRA.ALL/delimiter=\:
 environment/project/io.sloeber.core.toolChain.release.1802959035/JANTJE.EXTRA.ALL/operation=replace
 environment/project/io.sloeber.core.toolChain.release.1802959035/JANTJE.EXTRA.ALL/value=
