@@ -1,0 +1,23 @@
+#######################################
+# Syntax Coloring Map for TinyBMP280
+# (based on ADAFRUIT_BMP280)
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+TinyBMP280  KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin   KEYWORD2
+readTemperature    KEYWORD2
+readPressure    KEYWORD2
+readAltitude    KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
