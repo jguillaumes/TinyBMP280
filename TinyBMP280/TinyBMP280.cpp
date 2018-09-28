@@ -2,29 +2,12 @@
 #include <TinyWireM.h>
 #include "TinyBMP280.h"
 
-using namespace tbmp280;
-
-//+
-// Empty constructor
-//-
-TinyBMP280::TinyBMP280() {}
-
-//+
-// Write 8-bit value to the device using I2C
-//-
-void TinyBMP280::write8(byte reg, byte value)
-{
-	TinyWireM.beginTransmission((uint8_t)_i2caddr);
-	TinyWireM.send((uint8_t)reg);
-	TinyWireM.send((uint8_t)value);
-	TinyWireM.endTransmission();
-}
-
+using namespace tbmp;
 
 //+
 // Read a 8-bit value using I2C
 //-
-uint8_t TinyBMP280::read8(byte reg) {
+uint8_t TinyBMPBase::read8(byte reg) {
 	uint8_t value;
 
 	TinyWireM.beginTransmission((uint8_t)_i2caddr);
@@ -39,7 +22,7 @@ uint8_t TinyBMP280::read8(byte reg) {
 //+
 // Read an unsigned 16 bit value from I2C (big endian order)
 //-
-uint16_t TinyBMP280::read16(byte reg) {
+uint16_t TinyBMPBase::read16(byte reg) {
 	uint16_t value;
 
 	TinyWireM.beginTransmission((uint8_t)_i2caddr);
@@ -54,7 +37,7 @@ uint16_t TinyBMP280::read16(byte reg) {
 //+
 // Read an unsigned 16 bit value from I2C (little endian order)
 //-
-uint16_t TinyBMP280::read16_LE(byte reg) {
+uint16_t TinyBMPBase::read16_LE(byte reg) {
 	uint16_t temp = read16(reg);
 	return (temp >> 8) | (temp << 8);
 }
@@ -62,7 +45,7 @@ uint16_t TinyBMP280::read16_LE(byte reg) {
 //+
 // Read a signed 16 bit value from I2C (big endian order)
 //-
-int16_t TinyBMP280::readS16(byte reg)
+int16_t TinyBMPBase::readS16(byte reg)
 {
   return (int16_t)read16(reg);
 
@@ -71,7 +54,7 @@ int16_t TinyBMP280::readS16(byte reg)
 //+
 // Read a signed 16 bit value from I2C (little endian order)
 //-
-int16_t TinyBMP280::readS16_LE(byte reg)
+int16_t TinyBMPBase::readS16_LE(byte reg)
 {
   return (int16_t)read16_LE(reg);
 
@@ -81,7 +64,7 @@ int16_t TinyBMP280::readS16_LE(byte reg)
 // Read a signed 24 bit value from I2C. The value comes in three
 // bytes, according to the specs found in the BMP280 datasheet.
 //-
-uint32_t TinyBMP280::read24(byte reg) {
+uint32_t TinyBMPBase::read24(byte reg) {
 	uint32_t value;
 
 	TinyWireM.beginTransmission((uint8_t)_i2caddr);
@@ -99,7 +82,37 @@ uint32_t TinyBMP280::read24(byte reg) {
 }
 
 //+
-// Read the factory set calibration coefficients
+// Write 8-bit value to the device using I2C
+//-
+void TinyBMPBase::write8(byte reg, byte value)
+{
+	TinyWireM.beginTransmission((uint8_t)_i2caddr);
+	TinyWireM.send((uint8_t)reg);
+	TinyWireM.send((uint8_t)value);
+	TinyWireM.endTransmission();
+}
+
+//+
+// Take and calibrate an altitude reading (based on pressure and QNH)
+//-
+float TinyBMPBase::readAltitude(float seaLevelhPa) {
+  float altitude;
+
+  float pressure = readPressure(); // in Si units for Pascal
+  pressure /= 100;
+
+  altitude = 44330 * (1.0 - pow(pressure / seaLevelhPa, 0.1903));
+
+  return altitude;
+}
+
+//+
+// Empty constructor
+//-
+TinyBMP280::TinyBMP280() {}
+
+//+
+// Read the factory set calibration coefficients for the BMP280
 //-
 void TinyBMP280::readCoefficients(void) {
 	_bmp280_calib.dig_T1 = read16_LE(BMP280_REGISTER_DIG_T1);
@@ -134,7 +147,7 @@ bool TinyBMP280::begin(uint8_t addr) {
 //+
 // Take and calibrate a temperature reading
 //-
-uint32_t  TinyBMP280::readIntTemperature(void) {
+int32_t  TinyBMP280::readIntTemperature(void) {
 	int32_t var1, var2;
 
 	int32_t adc_T = read24(BMP280_REGISTER_TEMPDATA);
@@ -149,7 +162,7 @@ uint32_t  TinyBMP280::readIntTemperature(void) {
 
 	t_fine = var1 + var2;
 
-	return (uint32_t) (t_fine * 5 + 128) >> 8;
+	return (int32_t) (t_fine * 5 + 128) >> 8;
 }
 
 float  TinyBMP280::readTemperature(void) {
@@ -221,18 +234,195 @@ float  TinyBMP280::readPressure(void) {
 
 }
 
+//+
+// Empty constructor for the BMP180
+//-
+TinyBMP180::TinyBMP180() {}
 
 
 //+
-// Take and calibrate an altitude reading (based on pressure and QNH)
+// Initialize the device communications, set work mode and
+// read the compensation coefficients.
 //-
-float TinyBMP280::readAltitude(float seaLevelhPa) {
-  float altitude;
+bool TinyBMP180::begin(bmp180_mode_t mode) {
+	// Enable I2C
+	_i2caddr = BMP180_ADDRESS;
 
-  float pressure = readPressure(); // in Si units for Pascal
-  pressure /= 100;
+	TinyWireM.begin();
 
-  altitude = 44330 * (1.0 - pow(pressure / seaLevelhPa, 0.1903));
+	/* Mode boundary check */
+	if ((mode > BMP180_MODE_ULTRAHIGHRES) || (mode < 0))
+	{
+		mode = BMP180_MODE_ULTRAHIGHRES;
+	}
 
-  return altitude;
+	/* Make sure we have the right device */
+	uint8_t id = read8(BMP180_REGISTER_CHIPID);
+	if(id != 0x55)
+	{
+		return false;
+	}
+
+	/* Set the mode indicator */
+	_bmp180Mode = mode;
+
+	/* Coefficients need to be read once */
+	readCoefficients();
+
+	return true;
 }
+
+//+
+// Read factory set calibration coefficients for the BMP180
+//-
+void TinyBMP180::readCoefficients(void) {
+	_bmp180_coeffs.ac1 = readS16(BMP180_REGISTER_CAL_AC1);
+	_bmp180_coeffs.ac2 = readS16(BMP180_REGISTER_CAL_AC2);
+	_bmp180_coeffs.ac3 = readS16(BMP180_REGISTER_CAL_AC3);
+	_bmp180_coeffs.ac4 = read16(BMP180_REGISTER_CAL_AC4);
+	_bmp180_coeffs.ac5 = read16(BMP180_REGISTER_CAL_AC5);
+	_bmp180_coeffs.ac6 = read16(BMP180_REGISTER_CAL_AC6);
+	_bmp180_coeffs.b1  = readS16(BMP180_REGISTER_CAL_B1);
+	_bmp180_coeffs.b2  = readS16(BMP180_REGISTER_CAL_B2);
+	_bmp180_coeffs.mb  = readS16(BMP180_REGISTER_CAL_MB);
+	_bmp180_coeffs.mc  = readS16(BMP180_REGISTER_CAL_MC);
+	_bmp180_coeffs.md  = readS16(BMP180_REGISTER_CAL_MD);
+}
+
+//+
+// Read raw (uncompensated) temperature as integer
+//-
+int32_t TinyBMP180::readRawTemperature() {
+    uint16_t t;
+    write8(BMP180_REGISTER_CONTROL, BMP180_REGISTER_READTEMPCMD);
+    delay(5);
+    t = read16(BMP180_REGISTER_TEMPDATA);
+    return (int32_t) t;
+}
+
+//+
+// Read raw (uncompensated) pressure as integer
+//-
+int32_t TinyBMP180::readRawPressure(void) {
+	uint8_t  p8;
+	uint16_t p16;
+	int32_t  p32;
+
+	write8(BMP180_REGISTER_CONTROL, BMP180_REGISTER_READPRESSURECMD + (_bmp180Mode << 6));
+	switch(_bmp180Mode)
+	{
+	case BMP180_MODE_ULTRALOWPOWER:
+		delay(5);
+		break;
+	case BMP180_MODE_STANDARD:
+		delay(8);
+		break;
+	case BMP180_MODE_HIGHRES:
+		delay(14);
+		break;
+	case BMP180_MODE_ULTRAHIGHRES:
+	default:
+		delay(26);
+		break;
+	}
+
+	p16 = read16(BMP180_REGISTER_PRESSUREDATA);
+	p32 = (uint32_t)p16 << 8;
+	p8  = read8(BMP180_REGISTER_PRESSUREDATA+2);
+	p32 += p8;
+	p32 >>= (8 - _bmp180Mode);
+
+	return (int32_t) p32;
+}
+
+//+
+// Compute B5 coefficient used in calculations
+//-
+int32_t TinyBMP180::computeB5(int32_t ut) {
+  int32_t X1 = (ut - (int32_t)_bmp180_coeffs.ac6) * ((int32_t)_bmp180_coeffs.ac5) >> 15;
+  int32_t X2 = ((int32_t)_bmp180_coeffs.mc << 11) / (X1+(int32_t)_bmp180_coeffs.md);
+  return X1 + X2;
+}
+
+
+
+//+
+// Take and calibrate a temperature reading in integer form
+// The value is returned i Celsius * 100 (ie, 2340 = 23.4 C)
+//-
+int32_t TinyBMP180::readIntTemperature(void) {
+	int32_t t, UT, B5;
+
+	UT = readRawTemperature();
+
+	B5 = computeB5(UT);
+	t = (B5+8) >> 4;
+	t *= 10;
+	return t;
+}
+
+//+
+// Take and calibrate a temperature reading in float form
+// The value returned is in celsius
+//-
+float  TinyBMP180::readTemperature(void) {
+	int32_t UT, B5;
+	float t;
+
+	UT = readRawTemperature();
+	B5 = computeB5(UT);
+	t = (B5+8) >> 4;
+	t /= 10;
+	return t;
+}
+
+
+//+
+// Take and calibrate a pressure reading
+//-
+uint32_t  TinyBMP180::readIntPressure(void) {
+	int32_t  ut = 0, up = 0, compp = 0;
+	int32_t  x1, x2, b5, b6, x3, b3, p;
+	uint32_t b4, b7;
+
+	/* Get the raw pressure and temperature values */
+	ut = readRawTemperature();
+	up = readRawPressure();
+
+	/* Temperature compensation */
+	b5 = computeB5(ut);
+
+	/* Pressure compensation */
+	b6 = b5 - 4000;
+	x1 = (_bmp180_coeffs.b2 * ((b6 * b6) >> 12)) >> 11;
+	x2 = (_bmp180_coeffs.ac2 * b6) >> 11;
+	x3 = x1 + x2;
+	b3 = (((((int32_t) _bmp180_coeffs.ac1) * 4 + x3) << _bmp180Mode) + 2) >> 2;
+	x1 = (_bmp180_coeffs.ac3 * b6) >> 13;
+	x2 = (_bmp180_coeffs.b1 * ((b6 * b6) >> 12)) >> 16;
+	x3 = ((x1 + x2) + 2) >> 2;
+	b4 = (_bmp180_coeffs.ac4 * (uint32_t) (x3 + 32768)) >> 15;
+	b7 = ((uint32_t) (up - b3) * (50000 >> _bmp180Mode));
+
+	if (b7 < 0x80000000)
+	{
+		p = (b7 << 1) / b4;
+	}
+	else
+	{
+		p = (b7 / b4) << 1;
+	}
+
+	x1 = (p >> 8) * (p >> 8);
+	x1 = (x1 * 3038) >> 16;
+	x2 = (-7357 * p) >> 16;
+	compp = p + ((x1 + x2 + 3791) >> 4);
+
+	return (uint32_t) compp;
+}
+
+float  TinyBMP180::readPressure(void) {
+	return (float) readIntPressure();
+}
+
+
