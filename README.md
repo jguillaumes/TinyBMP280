@@ -1,8 +1,8 @@
-# TinyBMP280: a driver for BMP280 sensor devices under AVR tiny MCUs
+# TinyBMP280: a driver for BMP280/BMP180 sensor devices under AVR tiny MCUs
 
 This is a version of the ADAFRUIT_BMP280_Library library tailored to run
 on AVR tiny devices. It replaces the standard Arduino I2C library by the
-TinyWireM one, which uses an USI-based implementation of the I2C protocol.
+TinyWireM one, which uses an USI-based implementation of the I2C protocol. The library also supports the BMP180 device, using the same contract as the BMP280. The BMP180 support is based on the Adafruit' BMP280 library with some bits copied from the BMP085 (unified sensors) one.
 
 This version of the library can replace the Adafruit one as a drop-in. The public interface is compatible so very few (if any) code modification will be needed. Please take note this implementation **does not** support SPI connected BMP280 devices.
 
