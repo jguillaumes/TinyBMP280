@@ -44,12 +44,12 @@
 		<link>
 			<name>libraries/SoftwareSerial</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/libraries/SoftwareSerial</locationURI>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.21/libraries/SoftwareSerial</locationURI>
 		</link>
 		<link>
 			<name>libraries/TinyWireM</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/TinyWireM/1.0.1</locationURI>
+			<location>/Users/jguillaumes/Documents/Arduino/libraries/TinyWireM</location>
 		</link>
 	</linkedResources>
 </projectDescription>

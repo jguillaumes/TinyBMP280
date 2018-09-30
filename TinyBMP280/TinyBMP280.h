@@ -39,19 +39,19 @@ class TinyBMPBase {
 
 public:
 	float readTemperature(void);
-	float readPressure(void);
+	virtual float readPressure(void);
 	int32_t readIntTemperature(void);
 	uint32_t readIntPressure(void);
 	float readAltitude(float);
 
 protected:
-	void      write8(byte reg, byte value);
-	uint8_t   read8(byte reg);
-	uint16_t  read16(byte reg);
-	uint32_t  read24(byte reg);
-	int16_t   readS16(byte reg);
-	uint16_t  read16_LE(byte reg); // little endian
-	int16_t   readS16_LE(byte reg); // little endian
+	void      write8(uint8_t reg, uint8_t value);
+	uint8_t   read8(uint8_t reg);
+	uint16_t  read16(uint8_t reg);
+	uint32_t  read24(uint8_t reg);
+	int16_t   readS16(uint8_t reg);
+	uint16_t  read16_LE(uint8_t reg); // little endian
+	int16_t   readS16_LE(uint8_t reg); // little endian
 
 	uint8_t   _i2caddr;
 };
@@ -103,7 +103,7 @@ typedef struct {
 	int16_t  md;
 } bmp180_calib_data;
 
-class TinyBMP180 : TinyBMPBase {
+class TinyBMP180 : public TinyBMPBase {
 public:
     TinyBMP180(void);
 
@@ -175,7 +175,7 @@ typedef struct {
 	int8_t   dig_H6;
 } bmp280_calib_data;
 
-class TinyBMP280 : TinyBMPBase {
+class TinyBMP280 : public TinyBMPBase {
 public:
     TinyBMP280(void);
 	bool  begin(uint8_t addr = BMP280_ADDRESS);

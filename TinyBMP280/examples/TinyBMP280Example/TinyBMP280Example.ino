@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <TinyBMP280.h>
 #include <SoftwareSerial.h>
 
@@ -14,7 +15,7 @@
 // - Enjoy!
 
 SoftwareSerial mySerial(3, 4);
-tbmp280::TinyBMP280 bmp;
+tbmp::TinyBMP280 bmp;
 
 void setup() {
 	  mySerial.begin(2400);
