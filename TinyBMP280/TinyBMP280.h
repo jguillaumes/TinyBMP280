@@ -20,8 +20,7 @@
 //*********************************************************************
 
 #ifndef _TinyBMP280_H_
-#define _TinyBMP280_H_
-#include "Arduino.h"
+#define _BMPx80_H_clude "Arduino.h"
 //add your includes for the project TinyBMP280 here
 
 
@@ -39,7 +38,7 @@ class TinyBMPBase {
 
 public:
 	float readTemperature(void);
-	virtual float readPressure(void);
+	float readPressure(void);
 	int32_t readIntTemperature(void);
 	uint32_t readIntPressure(void);
 	float readAltitude(float);
