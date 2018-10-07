@@ -2,4 +2,4 @@ Release
 spec.d
 *~
 *.o
-
+.DS_Store
